@@ -7996,7 +7996,7 @@
 +//asm (".hidden _ZNSt10filesystem7__cxx114_DirC2ERKNS0_4pathEbbbRSt10error_code");
 --- libstdc++-v3/src/nonshared17/fs_ops80.cc.jj	2024-07-18 16:10:38.338406596 +0200
 +++ libstdc++-v3/src/nonshared17/fs_ops80.cc	2024-07-19 15:49:59.793786981 +0200
-@@ -0,0 +1,103 @@
+@@ -0,0 +1,104 @@
 +// Copyright (C) 2019-2024 Free Software Foundation, Inc.
 +//
 +// This file is part of the GNU ISO C++ Library.  This library is free
@@ -8020,6 +8020,7 @@
 +// <http://www.gnu.org/licenses/>.
 +
 +#include "../c++17/fs_ops.cc"
++asm (".hidden _ZNSt10filesystem11equiv_filesEPKcRK4statS1_S4_RSt10error_code");
 +asm (".hidden _ZN9__gnu_cxx13stdio_filebufIcSt11char_traitsIcEED0Ev");
 +asm (".hidden _ZN9__gnu_cxx13stdio_filebufIcSt11char_traitsIcEED1Ev");
 +asm (".hidden _ZN9__gnu_cxx13stdio_filebufIcSt11char_traitsIcEED2Ev");
