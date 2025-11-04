@@ -11,7 +11,7 @@ BuildRequires: scl-utils-build
 %global gcc_major 14
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 8
+%global gcc_release 9
 %global nvptx_tools_gitrev 87ce9dc5999e5fca2e1d3478a30888d9864c9804
 %global newlib_cygwin_gitrev d45261f62a15f8abd94a1031020b9a9f455e4eed
 %global isl_version 0.24
@@ -1045,20 +1045,6 @@ make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" LDFLAGS_FOR_TARGET=-Wl,-z,relro,-z
 make %{?_smp_mflags} BOOT_CFLAGS="$OPT_FLAGS" LDFLAGS_FOR_TARGET=-Wl,-z,relro,-z,now profiledbootstrap
 %endif
 
-echo '/* GNU ld script
-   Use the shared library, but some functions are only in
-   the static library, so try that secondarily.  */
-%{oformat}
-INPUT ( %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/%{_lib}/libstdc++.so.6 -lstdc++_nonshared%{nonsharedver} )' \
-  > %{gcc_target_platform}/libstdc++-v3/src/.libs/libstdc++_system.so
-
-%if 0
-# Relink libcc1 against -lstdc++_nonshared:
-sed -i -e '/^postdeps/s/-lstdc++/-lstdc++_system/' libcc1/libtool
-rm -f libcc1/libcc1.la
-make -C libcc1 libcc1.la
-%endif
-
 CC="`%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags --build-cc`"
 CXX="`%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags --build-cxx` `%{gcc_target_platform}/libstdc++-v3/scripts/testsuite_flags --build-includes`"
 
@@ -1440,11 +1426,18 @@ echo '/* GNU ld script */
 %{oformat}
 INPUT ( %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/%{_lib}/libgomp.so.1 )' > libgomp.so
 
+%define libstdcxx_so %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/%{_lib}/libstdc++.so.6
+%define libstdcxx_so_link INPUT ( %{libstdcxx_so} -lstdc++_nonshared AS_NEEDED (%{libstdcxx_so}) )
+%define libstdcxx64_so %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/lib64/libstdc++.so.6
+%define libstdcxx64_so_link INPUT ( %{libstdcxx64_so} -lstdc++_nonshared AS_NEEDED (%{libstdcxx64_so}) )
+%define libstdcxx32_so %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/lib/libstdc++.so.6
+%define libstdcxx32_so_link INPUT ( %{libstdcxx32_so} -lstdc++_nonshared AS_NEEDED (%{libstdcxx32_so}) )
+
 echo '/* GNU ld script
    Use the shared library, but some functions are only in
    the static library, so try that secondarily.  */
 %{oformat}
-INPUT ( %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/%{_lib}/libstdc++.so.6 -lstdc++_nonshared )' > libstdc++.so
+%{libstdcxx_so_link}' > libstdc++.so
 rm -f libgfortran.so
 echo '/* GNU ld script
    Use the shared library, but some functions are only in
@@ -1540,7 +1533,7 @@ echo '/* GNU ld script
    Use the shared library, but some functions are only in
    the static library, so try that secondarily.  */
 %{oformat2}
-INPUT ( %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/lib64/libstdc++.so.6 -lstdc++_nonshared )' > 64/libstdc++.so
+%{libstdcxx64_so_link}' > 64/libstdc++.so
 rm -f 64/libgfortran.so
 echo '/* GNU ld script
    Use the shared library, but some functions are only in
@@ -1628,7 +1621,7 @@ echo '/* GNU ld script
    Use the shared library, but some functions are only in
    the static library, so try that secondarily.  */
 %{oformat2}
-INPUT ( %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/lib/libstdc++.so.6 -lstdc++_nonshared )' > 32/libstdc++.so
+%{libstdcxx32_so_link}' > 32/libstdc++.so
 rm -f 32/libgfortran.so
 echo '/* GNU ld script
    Use the shared library, but some functions are only in
@@ -1928,7 +1921,7 @@ echo '/* GNU ld script
    Use the shared library, but some functions are only in
    the static library, so try that secondarily.  */
 %{oformat}
-INPUT ( %{?scl:%{_root_prefix}}%{!?scl:%{_prefix}}/%{_lib}/libstdc++.so.6 -lstdc++_nonshared )' \
+%{libstdcxx_so_link}' \
   > %{gcc_target_platform}/libstdc++-v3/src/.libs/libstdc++.so
 cp -a %{gcc_target_platform}/libstdc++-v3/src/.libs/libstdc++_nonshared%{nonsharedver}.a \
   %{gcc_target_platform}/libstdc++-v3/src/.libs/libstdc++_nonshared.a
@@ -2805,6 +2798,10 @@ fi
 %endif
 
 %changelog
+* Fri Oct 10 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-9
+- Add AS_NEEDED libstdc++.so.6 when only needed through libstdc++_nonshared
+  (RHEL-120369)
+
 * Thu Aug 28 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-8
 - Fix ICE in rebuild_jump_labels on aarch64-linux-gnu (RHEL-111045)
 
