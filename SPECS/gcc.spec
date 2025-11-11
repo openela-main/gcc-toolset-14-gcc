@@ -11,7 +11,7 @@ BuildRequires: scl-utils-build
 %global gcc_major 14
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 9
+%global gcc_release 12
 %global nvptx_tools_gitrev 87ce9dc5999e5fca2e1d3478a30888d9864c9804
 %global newlib_cygwin_gitrev d45261f62a15f8abd94a1031020b9a9f455e4eed
 %global isl_version 0.24
@@ -231,8 +231,10 @@ BuildRequires: libzstd-devel
 BuildRequires: glibc >= 2.3.90-35
 %endif
 %ifarch %{multilib_64_archs}
-# Ensure glibc{,-devel} is installed for both multilib arches
-BuildRequires: /lib/libc.so.6 /usr/lib/libc.so /lib64/libc.so.6 /usr/lib64/libc.so
+BuildRequires: (glibc32 or glibc-devel(%{__isa_name}-32))
+%endif
+%ifarch sparcv9 ppc
+BuildRequires: (glibc64 or glibc-devel(%{__isa_name}-64))
 %endif
 %ifarch ia64
 BuildRequires: libunwind >= 0.98
@@ -361,6 +363,7 @@ Patch3015: 0018-Use-CXX11-ABI.patch
 Patch3017: 0020-more-fixes.patch
 Patch3018: 0021-libstdc++-disable-tests.patch
 
+Patch4000: gcc14-RHEL-90244.patch
 Patch4001: gcc14-pr118892-1.patch
 Patch4002: gcc14-pr118892-2.patch
 Patch4003: gcc14-pr118892-3.patch
@@ -729,6 +732,7 @@ touch -r isl-0.24/m4/ax_prog_cxx_for_build.m4 isl-0.24/m4/ax_prog_cc_for_build.m
 %patch -P3018 -p1 -b .dts-test-18~
 
 # Bugfix backports.
+%patch -P4000 -p1 -b .RHEL-90244~
 %patch -P4001 -p1 -b .RHEL-pr118892-1~
 %patch -P4002 -p1 -b .RHEL-pr118892-2~
 %patch -P4003 -p1 -b .RHEL-pr118892-3~
@@ -2798,12 +2802,21 @@ fi
 %endif
 
 %changelog
-* Fri Oct 10 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-9
-- Add AS_NEEDED libstdc++.so.6 when only needed through libstdc++_nonshared
-  (RHEL-120369)
+* Thu Sep  4 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-12
+- Fix glibc32 dependency (RHEL-112209)
 
-* Thu Aug 28 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-8
-- Fix ICE in rebuild_jump_labels on aarch64-linux-gnu (RHEL-111045)
+* Wed Aug 27 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-11
+- Fix ICE in rebuild_jump_labels on aarch64-linux-gnu (RHEL-106790)
+
+* Wed May 28 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-10
+- Put the libstdc++ AS_NEEDED in the right places (RHEL-84679)
+
+* Thu May 22 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-9
+- Add AS_NEEDED libstdc++.so.6 when only needed through libstdc++_nonshared
+  (RHEL-84679)
+
+* Thu May 22 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-8
+- libstdc++: Fix -Warray-bounds warning in std::vector<bool> (RHEL-90244)
 
 * Fri Feb  7 2025 Marek Polacek <polacek@redhat.com> 14.2.1-7.1
 - disable jQuery use, don't ship jquery.js (CVE-2020-11023, RHEL-78387)
