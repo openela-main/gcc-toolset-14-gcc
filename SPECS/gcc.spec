@@ -11,7 +11,7 @@ BuildRequires: scl-utils-build
 %global gcc_major 14
 # Note, gcc_release must be integer, if you want to add suffixes to
 # %%{release}, append them after %%{gcc_release} on Release: line.
-%global gcc_release 12
+%global gcc_release 13
 %global nvptx_tools_gitrev 87ce9dc5999e5fca2e1d3478a30888d9864c9804
 %global newlib_cygwin_gitrev d45261f62a15f8abd94a1031020b9a9f455e4eed
 %global isl_version 0.24
@@ -2269,6 +2269,8 @@ fi
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_fp16.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_bf16.h
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_sve.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_neon_sve_bridge.h
+%{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/arm_sme.h
 %endif
 %ifarch sparc sparcv9 sparc64
 %{_prefix}/lib/gcc/%{gcc_target_platform}/%{gcc_major}/include/visintrin.h
@@ -2802,6 +2804,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan  8 2026 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-13
+- Add missing headers arm_neon_sve_bridge.h and arm_sme.h for aarch64 (RHEL-124589)
+
 * Thu Sep  4 2025 Siddhesh Poyarekar <siddhesh@redhat.com> 14.2.1-12
 - Fix glibc32 dependency (RHEL-112209)
 
